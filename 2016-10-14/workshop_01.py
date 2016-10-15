@@ -1,72 +1,72 @@
 from pyplasm import*
 
-def struttura():
+def structure(pillarDistance, pillarSection, beamDistance, beamSection):
 
-	#stringa = raw_input()
-	#inputList = string.split()
-	#dis = [float(x) for x in inputList]
-	a = 3
-	b = 4
-	c = 5
+	pillarList = []
+	for dist in pillarDistance:
+		pillarList.append(pillarSection[1])
+		pillarList.append(dist-dist*2)
+	pillarList.append(pillarSection[1])
 
-	d = 1
-	i = 2
+	pillarDistanceSum = sum([abs(i) for i in pillarDistance])
 
-	e = 3
-	f = 4
-	g = 2 #deve essere uguale a l
+	beamList = []
+	for dist in beamDistance:
+		beamList.append(dist-dist*2)
+		beamList.append(beamSection[1])
 
-	h = 0.5
-	l = 2
+	centrarePilastroNellaBase = (beamSection[0]-pillarSection[0])/2
+	xPillar = QUOTE(pillarList)
+	if centrarePilastroNellaBase >= 0:
+		yPillar = QUOTE([-centrarePilastroNellaBase,pillarSection[0],-centrarePilastroNellaBase])
+	else:
+		yPillar = QUOTE([pillarSection[0]])
+	xyPillar = PROD([xPillar,yPillar])
+	xyzPillar = PROD([xyPillar, QUOTE(-i for i in beamList)]) #serve per creare pilastri di altezza corretta con la lista beam invertita di segno
 
-	#variabili
-	distanzaTraPilastri = [a,b,c]
-	grandezzaPilastro = (d,i)
-
-	distanzaTraBasi = [e,f,g]
-	grandezzaBase = (h,l)
-
-
-	
-
-	listaPilastri = []
-	for dist in distanzaTraPilastri:
-		listaPilastri.append(d)
-		listaPilastri.append(dist-dist*2)
-	listaPilastri.append(d)
-
-	sommaDistanzePilastri = sum([abs(i) for i in distanzaTraPilastri])
+	xBeam = QUOTE([pillarDistanceSum+pillarSection[1]*(len(pillarDistance)+1)])
+	if centrarePilastroNellaBase >= 0:
+		yBeam = QUOTE([beamSection[0]])
+	else:
+		yBeam = QUOTE([centrarePilastroNellaBase,beamSection[0],centrarePilastroNellaBase])
+	xyBeam = PROD([xBeam, yBeam])
+	xyzBeam = PROD([xyBeam, QUOTE(beamList)])
 
 
+	VIEW(STRUCT([xyzPillar, xyzBeam]))
 
+def inputStructure():
+	print("Insert distances between axes of the pillars")
+	stringa = raw_input()
+	inputList = stringa.split()
+	distanzaTraPilastri = [float(x) for x in inputList]
 
-	listaBasi = []
-	for dist in distanzaTraBasi:
-		listaBasi.append(dist)
-		listaBasi.append(-h)
-	listaBasi.append(-h)
+	print("Insert interstory heights")
+	stringa = raw_input()
+	inputList = stringa.split()
+	distanzaTraBasi = [float(x) for x in inputList]
 
-	sommaDistanzeBasi = sum([abs(i) for i in distanzaTraBasi])
-	print(listaBasi)
+	print("Insert dimensions of beam section")
+	stringa = raw_input()
+	inputList = stringa.split()
+	beamSection = [float(x) for x in inputList]
+	beamSection = tuple(beamSection)
 
-	listaBasi2 = []
-	for dist in distanzaTraBasi:
-		listaBasi2.append(dist-dist*2)
-		listaBasi2.append(h)
+	print("Insert dimensions of pillar section)")
+	stringa = raw_input()
+	inputList = stringa.split()
+	pillarSection = [float(x) for x in inputList]
+	pillarSection = tuple(pillarSection)
 
+	structure(pillarDistance, pillarSection, beamDistance, beamSection)
 
-	x = QUOTE(listaPilastri)
-	y = QUOTE([grandezzaPilastro[1]])
-	xy = PROD([x,y])
-	xyz = PROD([xy, QUOTE(listaBasi)])
-
-	xbase = QUOTE([sommaDistanzePilastri+len(distanzaTraPilastri)+1])
-	ybase = QUOTE([grandezzaBase[1]])
-	xybase = PROD([xbase, ybase])
-	xyzbase = PROD([xybase, QUOTE(listaBasi2)])
-
-
-	VIEW(STRUCT([xyz, xyzbase]))
-
-
-struttura()
+#variabili
+pillarDistance = [3,4,5]
+pillarSection = (0.4,0.4)		#[0] px [1] py
+beamDistance = [3,4,2]
+beamSection = (2,0.2)			#[0] bx [1] bz
+scelta = input('Inserire i valori della struttura manualmente o eseguire esempio? [1/2]:')
+if (scelta == 1):
+	inputStructure()
+else:
+	structure(pillarDistance, pillarSection, beamDistance, beamSection)
