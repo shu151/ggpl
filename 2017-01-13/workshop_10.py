@@ -365,5 +365,5 @@ def createRoof(file,heightHouse,pendenzaFalda,textureRoofFile):
 	return roof
 
 
-#VIEW(multistorey_house(3)(5)(3)(2)(PI/6))
+#VIEW(multistorey_house(3)(5,"texture/wall.jpg")(3)(2)(PI/6,"texture/roofing.jpg"))
 VIEW(multistorey_house(2)(4,"texture/wall.jpg")(3)(2)(PI/4,"texture/roofing.jpg"))
