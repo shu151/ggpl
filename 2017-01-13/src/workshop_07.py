@@ -102,7 +102,7 @@ def createDoorYAxis(X,Y,Z,occupancy,dx,dy,dz):
 
 
 
-def createWindow(X,Y,Z,occupancy,dx,dy,dz):
+def createWindowXAxis(X,Y,Z,occupancy,dx,dy,dz):
 	"""
 	createWindow genera un modello HPC di una finestra
 	@param X: lista di Float che indicano gli intervalli di celle da analizzare (asse x)
@@ -137,7 +137,8 @@ def createWindow(X,Y,Z,occupancy,dx,dy,dz):
 	result = STRUCT([result,T([2])(dy+dz/70.0),T([1])(dx/2-dx/2/20),T([3])(dz/2),knob])
 	return result
 
-def createWindow2(X,Y,Z,occupancy,dx,dy,dz):
+
+def createWindowYAxis(X,Y,Z,occupancy,dx,dy,dz):
 	"""
 	createWindow genera un modello HPC di una finestra
 	@param X: lista di Float che indicano gli intervalli di celle da analizzare (asse x)
@@ -154,15 +155,15 @@ def createWindow2(X,Y,Z,occupancy,dx,dy,dz):
 	sumY= sum(Y)
 	window = []
 	sumValuesX = 0
-	for i in range(len(Y)):
+	for i in range(len(X)):
 		yQuote = []
-		for y in range(len(X)):
+		for y in range(len(Y)):
 			if(occupancy[i][y] == True):
-				yQuote.append(X[y]/sumY*dz)
+				yQuote.append(Y[y]/sumY*dz)
 			else:
-				yQuote.append(-X[y]/sumY*dz)
-		window.append(PROD([QUOTE([-sumValuesX/sumX*dx, Y[i]/sumX*dx]), QUOTE(yQuote)]))
-		sumValuesX = sumValuesX + Y[i]
+				yQuote.append(-Y[y]/sumY*dz)
+		window.append(PROD([QUOTE([-sumValuesX/sumX*dx, X[i]/sumX*dx]), QUOTE(yQuote)]))
+		sumValuesX = sumValuesX + X[i]
 	result = STRUCT(window)
 	result = PROD([result, Q(dy)])
 	result = MAP([S1,S3,S2])(result)
@@ -170,6 +171,7 @@ def createWindow2(X,Y,Z,occupancy,dx,dy,dz):
 	knob = COLOR(Color4f([217/255., 138/255., 95/255., 1]))(knob)
 	result = COLOR(Color4f([217/255., 138/255., 95/255., 1]))(result)
 	result = STRUCT([result,T([2])(dy+dz/70.0),T([1])(dx/2-dx/2/20),T([3])(dz/2),knob])
+	result = R([1,2])(PI/2)(result)
 	return result
 
 

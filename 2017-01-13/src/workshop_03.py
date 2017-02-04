@@ -84,18 +84,20 @@ def ggpl_l_shaped_stair(dx, dy, dz):
 
 
 def ggpl_straight_stairs(dx, dy, dz):
+	"""
+	ggpl_straight_stairs crea una scala "straight" secondo i parametri dx dy dz che indicano le dimensioni della scatola in cui
+	la scala deve rientrare
+
+	@param dx,dy,dz: valori(float) della dimensione della scatola
+	@return stair: l'hpc della scala
+	"""
 	dxGradino = dx
 	dyGradino = 0.3
 	dzGradino = 0.4
 
-
 	gradini = dz/dzGradino
-	print gradini
-	print round(gradini,0)
 	dzGradino = dz/round(gradini,0)
-	print dzGradino
 	gradini = (int)(round(gradini,0))*2
-	print gradini
 
 	xyGradino = MKPOL([[[0,0],[0,dzGradino],[dyGradino,dzGradino],[dyGradino,dzGradino/2],[0,0]],[[1,2,3,4,5]],1])
 	xyzGradino = PROD([QUOTE([dxGradino]),xyGradino])
@@ -108,14 +110,11 @@ def ggpl_straight_stairs(dx, dy, dz):
 		stairRampObjectList.append(xyzGradino)
 		stairRampObjectList.append(T([2])([dyGradino]))
 		stairRampObjectList.append(T([3])([dzGradino/2]))
-
-	#stairRampObjectList.append(CUBOID([dxGradino,dxGradino,dzGradino-0.2]))
-	#stairRampObjectList.append(T([2])([dxGradino]))
-	#VIEW(STRUCT(stairRampObjectList))
 	return STRUCT(stairRampObjectList)
 
-#VIEW(STRUCT(ggpl_l_shaped_stair(6.0,6.0,24.0)))
 
+
+#VIEW(STRUCT(ggpl_l_shaped_stair(6.0,6.0,24.0)))
 #VIEW(ggpl_straight_stairs(6.0,6.0,1.0))
 
 

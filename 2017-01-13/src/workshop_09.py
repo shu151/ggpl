@@ -16,8 +16,6 @@ def ggpl_roof(verts,angolo,altezzaFalda,direzioni):
 
 	falde = []
 	for i in range(len(direzioni)):
-		print i
-		print len(direzioni)
 		if i==len(direzioni)-1:
 			falde.append(creaFalda(verts[i],verts[0],angolo,altezzaFalda,direzioni[i]))
 		else:
@@ -32,11 +30,9 @@ def ggpl_roof(verts,angolo,altezzaFalda,direzioni):
 	intersezioni = []
 	for i in range(len(rette)):
 		if i==len(rette)-1:
-			print "int1",i
 			intersezioni.append(intersezioneDueRette(rette[i],rette[0]))
 		else:
 			s = i+1
-			print "int2",i
 			intersezioni.append(intersezioneDueRette(rette[i],rette[s]))
 
 	faldeFinali = []
@@ -154,20 +150,15 @@ def creaFalda(vert1, vert2, angolo, altezzaFalda, direzione):
 	#math.cos(a) = distv2v3/distv1v2
 	a = math.asin(distv2v3/distv1v2)
 
-	print a* 180/PI
-
 	b = PI/2-a
 
-	print b * 180/PI
-
 	distv2v4 = altezzaFalda * math.cos(angolo)
-	print "dist", distv2v4
 
 	altezzaPerpendicolareFalda = sqrt(altezzaFalda*altezzaFalda-distv2v4*distv2v4)
 	distv2v5 = distv2v4 * math.cos(b)
-	print "dist", distv2v5
+
 	distv4v5 = sqrt(distv2v4*distv2v4-distv2v5*distv2v5)
-	print "dist", distv4v5
+
 
 	if direzione==1:
 		vert6 = [vert2[0]+distv2v4,vert2[1]+distv4v5,altezzaPerpendicolareFalda]
@@ -182,11 +173,9 @@ def creaFalda(vert1, vert2, angolo, altezzaFalda, direzione):
 		vert6 = [vert2[0]+distv2v4,vert2[1]-distv4v5,altezzaPerpendicolareFalda]
 		vert7 = [vert1[0]+distv2v4,vert1[1]-distv4v5,altezzaPerpendicolareFalda]
 
-	print vert6
 	verts = [vert1,vert2,vert6,vert7]
 	prova = MKPOL([verts,[[1,2,3,4]],None])
-	print distv4v5
-	#VIEW(prova)
+
 
 	return verts
 
@@ -215,9 +204,7 @@ def equazioneRettaPerDuePunti(vert1,vert2):
 	# Se i due punti hanno la stessa ordinata, la retta che li comprende e' parallela all'asse x
 	if x1==x2:
 		retta = [1,0,x1]
-		print"x =",x1
 	elif y1==y2:
-		print"y =",y1
 		retta = [0,1,y1]
 	else:
 		m=(float(y2)-float(y1))/(float(x2)-float(x1))
@@ -242,8 +229,7 @@ def intersezioneDueRette(retta1,retta2):
 	  
 	# la funzione linalg.solve risolve sistemi lineari
 	punto = linalg.solve(A, b)  
-	print punto[0]
-	print punto[1]
+
 	return punto
 
 def equazionePianoPerTrePunti(vert1,vert2,vert3):
