@@ -21,10 +21,11 @@ occupancy = [[True, True, True, True, True, True, True],
 		  [True, True, True, True, True, True, True]]
 
 
-def multistorey_house(storey):
+def multistorey_house(storey,directoryFile):
 	"""
 	multistorey_house prende in input il numero di piani della casa e restituisce l'HPC della casa generata
 	@param storey: numero dei piani
+	@param directoryFile: directory da dove recuperare i file
 	@return house: l'HPC della casa
 	"""
 	def buildExternalWalls(heightWalls, textureWallsFile):
@@ -42,7 +43,7 @@ def multistorey_house(storey):
 				buildWindows prende in input l'altezza delle finestre
 				@param heightWindows: altezza finestre
 				"""
-				def buildRoof(pendenzaFalda, textureRoofFile):
+				def buildRoof(pendenzaFalda, heightRoof, direzioneFalde, textureRoofFile):
 					"""
 					buildRoof prende in input la pendenza delle falde del tetto
 					@param pendenzaFalda: la pendenza in gradi delle falde del tetto
@@ -54,37 +55,42 @@ def multistorey_house(storey):
 					holeWindows = []
 					windows = []
 					stairs=[]
+					holeStairs=[]
 
 
 					for i in range(storey):
-						floor = createFloor("lines/muri_esterni.lines")
-						floors.append(T([3])([heightWalls*(i)])(floor))
-
-						externalWall = createWall("lines/muri_esterni.lines",heightWalls,textureWallsFile)
-						internalWall = createWall("lines/muri_interni.lines",heightWalls,textureWallsFile)
+						floor = createFloor(directoryFile+"muri_esterni.lines")
+						
+						externalWall = createWall(directoryFile+"muri_esterni.lines",heightWalls,textureWallsFile)
+						internalWall = createWall(directoryFile+"muri_interni.lines",heightWalls,textureWallsFile)
 						walls.append(T([3])([heightWalls*(i)])(externalWall))
 						walls.append(T([3])([heightWalls*(i)])(internalWall))
 
-						holeDoorsPlane = createHoleDoors("lines/porte"+str(i+1)+".lines",heightDoors,walls)
+						holeDoorsPlane = createHoleDoors(directoryFile+"porte"+str(i+1)+".lines",heightDoors,walls)
 						if (holeDoorsPlane!=None):
 							holeDoors.append(T([3])([heightWalls*(i)])(holeDoorsPlane))
 
-						doorsPlane = createDoors("lines/porte"+str(i+1)+".lines",heightDoors,walls)
+						doorsPlane = createDoors(directoryFile+"porte"+str(i+1)+".lines",heightDoors,walls)
 						if (doorsPlane!=None):
 							doors.append(T([3])([heightWalls*(i)])(doorsPlane))
 
-						holeWindowsPlane = createHoleWindows("lines/finestre_dett.lines",heightWindows,heightWalls,walls)
+						holeWindowsPlane = createHoleWindows(directoryFile+"finestre.lines",heightWindows,heightWalls,walls)
 						holeWindows.append(T([3])([heightWalls*(i)])(holeWindowsPlane))
 
-						windowsPlane = createWindows("lines/finestre_dett.lines",heightWindows,heightWalls,walls)
+						windowsPlane = createWindows(directoryFile+"finestre.lines",heightWindows,heightWalls,walls)
 						windows.append(T([3])([heightWalls*(i)])(windowsPlane))
 
-						stair = createStairs("lines/scala"+str(i+1)+".lines",heightWalls)
+						stair = createStairs(directoryFile+"scala"+str(i+1)+".lines",heightWalls)
+						floorWithStairs = createFloorWithStairs(directoryFile+"scala"+str(i)+".lines",floor,heightWalls)
 						if (stair!=None):
-							stairs.append(stair)
+							stairs.append(T([3])([heightWalls*(i)])(stair))
+						if (floorWithStairs!=None):
+							floors.append(T([3])([heightWalls*(i)])(floorWithStairs))
+						else:
+							floors.append(T([3])([heightWalls*(i)])(floor))
 
 
-					roof = createRoof("lines/muri_esterni.lines",heightWalls*storey,pendenzaFalda,textureRoofFile)
+					roof = createRoof(directoryFile+"muri_esterni.lines",heightWalls*storey,pendenzaFalda,heightRoof,direzioneFalde,textureRoofFile)
 
 					floors = STRUCT(floors)
 					walls = STRUCT(walls)
@@ -93,7 +99,7 @@ def multistorey_house(storey):
 					doors = STRUCT(doors)
 					holeWindows = STRUCT(holeWindows)
 					walls = DIFFERENCE([walls, holeWindows])
-					walls = TEXTURE("texture/wall.jpg")(walls)
+					walls = TEXTURE(textureWallsFile)(walls)
 					windows = STRUCT(windows)
 
 					if not stairs:
@@ -106,6 +112,66 @@ def multistorey_house(storey):
 			return buildWindows
 		return buildDoors
 	return buildExternalWalls
+
+def createFloorWithStairs(file,floor,heightWalls):
+	"""
+	createFloorWithStairs prende in input il nome del file, il piano hpc e l'altezza dei muri
+	@param file: nome del file da cui prendere i vari parametri
+	@param floor: piano in cui arriva la scala
+	@param heightWalls: altezza dei muri
+	@return floor: l'HPC del piano con i buchi dove deve arrivare la scala
+	"""
+	if os.path.isfile(file):
+		reader = csv.reader(open(file, 'rb'), delimiter=',')  
+		i = 0
+		scale=[]
+		for row in reader:
+			if((i)%4==0):
+				minX=min([float(row[0]),float(row[2])])
+				maxX=max([float(row[0]),float(row[2])])
+				minY=min([float(row[1]),float(row[3])])
+				maxY=max([float(row[1]),float(row[3])])
+				i=i+1
+			elif((i)%4!=0 and (i+1)%4==0):
+				minX=min(min([float(row[0]),float(row[2])]),minX)
+				maxX=max(max([float(row[0]),float(row[2])]),maxX)
+				minY=min(min([float(row[1]),float(row[3])]),minY)
+				maxY=max(max([float(row[1]),float(row[3])]),maxY)
+				scala = []
+				scala.append(minX)
+				scala.append(maxX)
+				scala.append(minY)
+				scala.append(maxY)
+				scale.append(scala)
+				i=i+1
+			elif((i)%4!=0):
+				minX=min(min([float(row[0]),float(row[2])]),minX)
+				maxX=max(max([float(row[0]),float(row[2])]),maxX)
+				minY=min(min([float(row[1]),float(row[3])]),minY)
+				maxY=max(max([float(row[1]),float(row[3])]),maxY)
+				i=i+1
+
+		holeStairs = []
+		for scalaP in scale:
+			dx=scalaP[1]*0.04-scalaP[0]*0.04
+			dy=scalaP[3]*0.04-scalaP[2]*0.04
+			dz=heightWalls
+
+			holeStairs.append(T(1)(scalaP[0]*0.04))
+			holeStairs.append(T(2)(scalaP[2]*0.04))
+			holeStairs.append(T(3)(-0.2))
+			holeFloor = (CUBOID([dx,dy,0.4]))
+			holeStairs.append(holeFloor)
+			holeStairs.append(T(1)(-scalaP[0]*0.04))
+			holeStairs.append(T(2)(-scalaP[2]*0.04))
+
+
+		holeStairs = STRUCT(holeStairs)
+		floor = DIFFERENCE([floor, holeStairs])
+		floor = TEXTURE("texture/floor.jpg")(floor)
+
+		return floor
+	return None
 
 def createStairs(file,heightWalls):
 	"""
@@ -179,6 +245,11 @@ def createHoleWindows(file,heightWindows,heightWalls,walls):
 			holeWindow = OFFSET([0,1,heightWindows])(holeWindow)
 			holeWindow = T([2])([-0.5])(holeWindow)
 			holeWindows.append(holeWindow)
+		elif (row[0] == row[2]):
+			holeWindow = S([1,2,3])([.04,.04,.04])(holeWindow)
+			holeWindow = OFFSET([1,0,heightWindows])(holeWindow)
+			holeWindow = T([1])([-0.5])(holeWindow)
+			holeWindows.append(holeWindow)
 
 
 	holeWindows = STRUCT(holeWindows)
@@ -192,39 +263,33 @@ def createWindows(file,heightWindows,heightWalls,walls):
 	@param heightWindows: altezza delle finestre
 	@param heightWalls: altezza dei muri
 	@param walls: HPC dei muri
-	@return finestre: l'HPC delle porte
+	@return windows: l'HPC delle porte
 	"""
-	reader = csv.reader(open("lines/finestre_dett.lines", 'rb'), delimiter=',')  
-	finestre = []
+	reader = csv.reader(open(file, 'rb'), delimiter=',')  
+	windows = []
 	for row in reader:
 		if(row[0]==row[2]):
 			dx=0.2
 			dy=max([float(row[1]),float(row[3])])-min([float(row[1]),float(row[3])])
-			dz=(heightWalls-heightWindows)/2.
-			finestra=doorAndWindow.createWindowXAxis(X,Y,Z,occupancy,dx,dy,dz)
-			finestre.append(T(1)(float(row[0])*0.04))
-			finestre.append(T(2)(float(row[1])*0.04))
-			finestre.append(T(3)(((heightWalls-heightWindows)/2.)))
-			finestre.append(S([1,2,3])([.04,.04,.04])(finestra))
-			finestre.append(T(1)(-float(row[0])*0.04))
-			finestre.append(T(2)(-float(row[1])*0.04))
-			finestre.append(T(3)(-((heightWalls-heightWindows)/2.)))
-		if(row[1]==row[3]):
+			dz=((heightWalls-heightWindows))/0.04
+			window=doorAndWindow.createWindowYAxis(X,Y,Z,occupancy,dy,dx,dz)
+		#if(row[1]==row[3]):
+		else:
 			dx=max([float(row[0]),float(row[2])])-min([float(row[0]),float(row[2])])
 			dy=dx/13.33
 			dz=heightWindows/0.04
-			finestra=doorAndWindow.createWindowXAxis(X,Y,Z,occupancy,dx,dy,dz)
-			finestre.append(T(1)(float(row[0])*0.04))
-			finestre.append(T(2)(float(row[1])*0.04))
-			finestre.append(T(3)(((heightWalls-heightWindows)/2.)))
-			finestre.append(S([1,2,3])([.04,.04,.04])(finestra))
-			finestre.append(T(1)(-float(row[0])*0.04))
-			finestre.append(T(2)(-float(row[1])*0.04))
-			finestre.append(T(3)(-((heightWalls-heightWindows)/2.)))
+			window=doorAndWindow.createWindowXAxis(X,Y,Z,occupancy,dx,dy,dz)
+		windows.append(T(1)(float(row[0])*0.04))
+		windows.append(T(2)(float(row[1])*0.04))
+		windows.append(T(3)(((heightWalls-heightWindows)/2.)))
+		windows.append(S([1,2,3])([.04,.04,.04])(window))
+		windows.append(T(1)(-float(row[0])*0.04))
+		windows.append(T(2)(-float(row[1])*0.04))
+		windows.append(T(3)(-((heightWalls-heightWindows)/2.)))
 
-	finestre=STRUCT(finestre)
+	windows=STRUCT(windows)
 
-	return finestre
+	return windows
 
 def createHoleDoors(file,heightDoors,walls):
 	"""
@@ -271,21 +336,17 @@ def createDoors(file,heightDoors,walls):
 				dx=dy/13.33
 				dz=heightDoors/0.04
 				door=doorAndWindow.createDoorYAxis(X,Y,Z,occupancy,dy,dx,dz)
-				doors.append(T(1)(float(row[0])*0.04))
-				doors.append(T(2)(float(row[1])*0.04))
-				doors.append(S([1,2,3])([.04,.04,.04])(door))
-				doors.append(T(1)(-float(row[0])*0.04))
-				doors.append(T(2)(-float(row[1])*0.04))
-			elif(row[1]==row[3]):
+			#elif(row[1]==row[3]):
+			else:
 				dx=max([float(row[0]),float(row[2])])-min([float(row[0]),float(row[2])])
 				dy=dx/13.33
 				dz=heightDoors/0.04
 				door=doorAndWindow.createDoorXAxis(X,Y,Z,occupancy,dx,dy,dz)
-				doors.append(T(1)(float(row[0])*0.04))
-				doors.append(T(2)(float(row[1])*0.04))
-				doors.append(S([1,2,3])([.04,.04,.04])(door))
-				doors.append(T(1)(-float(row[0])*0.04))
-				doors.append(T(2)(-float(row[1])*0.04))
+			doors.append(T(1)(float(row[0])*0.04))
+			doors.append(T(2)(float(row[1])*0.04))
+			doors.append(S([1,2,3])([.04,.04,.04])(door))
+			doors.append(T(1)(-float(row[0])*0.04))
+			doors.append(T(2)(-float(row[1])*0.04))
 
 		doors = STRUCT(doors)
 		return doors
@@ -336,10 +397,11 @@ def createFloor(file):
 	externalWalls = MKPOL([verts,cells,None])
 	floor = SOLIDIFY(externalWalls)
 	floor = S([1,2,3])([.04,.04,.04])(floor)
+	floor = OFFSET([0,0,.2])(floor)
 	floor = TEXTURE("texture/floor.jpg")(floor)
 	return floor
 
-def createRoof(file,heightHouse,pendenzaFalda,textureRoofFile):
+def createRoof(file,heightHouse,pendenzaFalda,heightRoof,direzioneFalde,textureRoofFile):
 	"""
 	createRoof prende in input il nome del file, l'altezza della casa e la pendenza della falda del tetto
 	@param file: nome del file da cui prendere i vari parametri
@@ -358,12 +420,14 @@ def createRoof(file,heightHouse,pendenzaFalda,textureRoofFile):
 		i+=2
 		cells.append([i-1,i])
 
-	roof = roofMain.ggpl_roof(verts,pendenzaFalda,4,[1,2,3,1,3,1])
-	roof = OFFSET([.2,.2,0])(roof)
+	#roof = roofMain.ggpl_roof(verts,pendenzaFalda,heightRoof,direzioneFalde)
+	roof = roofMain.ggpl_roof(verts,pendenzaFalda,heightRoof,direzioneFalde,textureRoofFile)
+	#roof = OFFSET([.2,.2,0])(roof)
 	roof = (T(3)(heightHouse)(roof))
-	roof = TEXTURE(textureRoofFile)(roof)
+	#roof = TEXTURE(textureRoofFile)(roof)
 	return roof
 
 
 #VIEW(multistorey_house(3)(5,"texture/wall.jpg")(3)(2)(PI/6,"texture/roofing.jpg"))
-VIEW(multistorey_house(2)(4,"texture/wall.jpg")(3)(2)(PI/4,"texture/roofing.jpg"))
+#VIEW(multistorey_house(2,"lines/house1/")(4,"texture/wall.jpg")(3)(2)(PI/4,4,[1,2,3,1,3,1],"texture/roofing.jpg"))
+VIEW(multistorey_house(2,"lines/house2/")(4,"texture/brown.jpg")(3)(2)(PI/4,4,[1,2,1,2,4,3,3,1],"texture/roofing5.jpg"))

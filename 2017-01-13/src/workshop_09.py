@@ -3,7 +3,7 @@ from scipy import *
 from numpy import *  
 import math
 
-def ggpl_roof(verts,angolo,altezzaFalda,direzioni):
+def ggpl_roof(verts,angolo,altezzaFalda,direzioni,textureRoofFile):
 	"""
 	ggpl_roof ritorna l'HPC di un tetto secondo 4 parametri: i vertici del contorno del tetto, i gradi della pendenza delle falde, 
 	la lunghezza della pendenza delle falde e la direzione di ogni falda 
@@ -39,11 +39,11 @@ def ggpl_roof(verts,angolo,altezzaFalda,direzioni):
 	for i in range(len(direzioni)):
 		if i == 0:
 			f = MKPOL([[[falde[i][0][0],falde[i][0][1],0],[falde[i][1][0],falde[i][1][1],0],[intersezioni[i][0],intersezioni[i][1],falde[1][2][2]],[intersezioni[len(direzioni)-1][0],intersezioni[len(direzioni)-1][1],falde[0][2][2]]],[[1,2,3,4]],None])
-			f = TEXTURE("roofing.jpg")(f)
+			f = TEXTURE(textureRoofFile)(f)
 			faldeFinali.append(f)
 		else:
 			f = MKPOL([[[falde[i][0][0],falde[i][0][1],0],[falde[i][1][0],falde[i][1][1],0],[intersezioni[i][0],intersezioni[i][1],falde[1][2][2]],[intersezioni[i-1][0],intersezioni[i-1][1],falde[0][2][2]]],[[1,2,3,4]],None])
-			f = TEXTURE("roofing.jpg")(f)
+			f = TEXTURE(textureRoofFile)(f)
 			faldeFinali.append(f)
 
 	vertsContorno = [[] for _ in range(len(intersezioni)+1)]
@@ -62,7 +62,7 @@ def ggpl_roof(verts,angolo,altezzaFalda,direzioni):
 	contorno = SOLIDIFY(contorno)
 
 	terrazzo = T(3)(falde[0][2][2])(contorno)
-	terrazzo = TEXTURE("roofing2.jpg")(terrazzo)
+	terrazzo = TEXTURE("texture/roofing2.jpg")(terrazzo)
 
 	tetto = STRUCT(faldeFinali)
 	return STRUCT([terrazzo,tetto])
