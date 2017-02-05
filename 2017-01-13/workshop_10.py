@@ -32,6 +32,7 @@ def multistorey_house(storey,directoryFile):
 		"""
 		buildExternalWalls prende in input l'altezza di un piano della casa
 		@param heightWalls: altezza piano
+		@param textureWallsFile: file delle texture dei muri
 		"""
 		def buildDoors(heightDoors):
 			"""
@@ -47,6 +48,9 @@ def multistorey_house(storey,directoryFile):
 					"""
 					buildRoof prende in input la pendenza delle falde del tetto
 					@param pendenzaFalda: la pendenza in gradi delle falde del tetto
+					@param heightRoof: altezza del tetto
+					@param direzioneFalde: array dove un elemento indica in quale quadrante (di un ipotetico piano cartesiano) 1,2,3 o 4 va direzionata la falda
+					@param textureRoofFile: file delle texture del tetto
 					"""
 					floors = []
 					walls = []
@@ -60,9 +64,15 @@ def multistorey_house(storey,directoryFile):
 
 					for i in range(storey):
 						floor = createFloor(directoryFile+"muri_esterni.lines")
+
+						floorBalcony = createFloor(directoryFile+"floor_balcone"+str(i+1)+".lines")
+						if floorBalcony!=None:
+							floors.append(T([3])([heightWalls*(i)])(floorBalcony))
+							balconylWall = createWall(directoryFile+"muri_balcone"+str(i+1)+".lines",heightWalls,True,textureWallsFile)
+							walls.append(T([3])([heightWalls*(i)])(balconylWall))
 						
-						externalWall = createWall(directoryFile+"muri_esterni.lines",heightWalls,textureWallsFile)
-						internalWall = createWall(directoryFile+"muri_interni.lines",heightWalls,textureWallsFile)
+						externalWall = createWall(directoryFile+"muri_esterni.lines",heightWalls,False,textureWallsFile)
+						internalWall = createWall(directoryFile+"muri_interni.lines",heightWalls,False,textureWallsFile)
 						walls.append(T([3])([heightWalls*(i)])(externalWall))
 						walls.append(T([3])([heightWalls*(i)])(internalWall))
 
@@ -353,11 +363,12 @@ def createDoors(file,heightDoors,walls):
 	return None
 
 
-def createWall(file,heightWalls,textureWallsFile):
+def createWall(file,heightWalls,balcony,textureWallsFile):
 	"""
 	createWall prende in input il nome del file e l'altezza del muro
 	@param file: nome del file da cui prendere i vari parametri
 	@param heightWalls: altezza del muro
+	@param balcony: booleano, true se e' un muro di un balcone, falso altrimenti
 	@return walls: l'HPC dei muri
 	"""
 	verts = []
@@ -372,7 +383,10 @@ def createWall(file,heightWalls,textureWallsFile):
 
 	walls = MKPOL([verts,cells,None])
 	walls = S([1,2,3])([.04,.04,.04])(walls)
-	walls = OFFSET([.2,.2,heightWalls])(walls)
+	if balcony:
+		walls = OFFSET([.2,.2,heightWalls/2])(walls)
+	else:
+		walls = OFFSET([.2,.2,heightWalls])(walls)
 	walls = TEXTURE(textureWallsFile)(walls)
 	return walls
 
@@ -384,22 +398,24 @@ def createFloor(file):
 	@return floor: l'HPC del pavimento
 	"""
 	# .lines ogni riga ha due coppie di x/y che costituiscono un segmento
-	verts = []
-	cells = []
-	i = 0
-	reader = csv.reader(open(file, 'rb'), delimiter=',')  
-	for row in reader:
-		verts.append([float(row[0]), float(row[1])])
-		verts.append([float(row[2]), float(row[3])])
-		i+=2
-		cells.append([i-1,i])
+	if os.path.isfile(file):
+		verts = []
+		cells = []
+		i = 0
+		reader = csv.reader(open(file, 'rb'), delimiter=',')  
+		for row in reader:
+			verts.append([float(row[0]), float(row[1])])
+			verts.append([float(row[2]), float(row[3])])
+			i+=2
+			cells.append([i-1,i])
 
-	externalWalls = MKPOL([verts,cells,None])
-	floor = SOLIDIFY(externalWalls)
-	floor = S([1,2,3])([.04,.04,.04])(floor)
-	floor = OFFSET([0,0,.2])(floor)
-	floor = TEXTURE("texture/floor.jpg")(floor)
-	return floor
+		externalWalls = MKPOL([verts,cells,None])
+		floor = SOLIDIFY(externalWalls)
+		floor = S([1,2,3])([.04,.04,.04])(floor)
+		floor = OFFSET([0,0,.2])(floor)
+		floor = TEXTURE("texture/floor.jpg")(floor)
+		return floor
+	return None
 
 def createRoof(file,heightHouse,pendenzaFalda,heightRoof,direzioneFalde,textureRoofFile):
 	"""
@@ -430,4 +446,4 @@ def createRoof(file,heightHouse,pendenzaFalda,heightRoof,direzioneFalde,textureR
 
 #VIEW(multistorey_house(3)(5,"texture/wall.jpg")(3)(2)(PI/6,"texture/roofing.jpg"))
 #VIEW(multistorey_house(2,"lines/house1/")(4,"texture/wall.jpg")(3)(2)(PI/4,4,[1,2,3,1,3,1],"texture/roofing.jpg"))
-VIEW(multistorey_house(2,"lines/house2/")(4,"texture/brown.jpg")(3)(2)(PI/4,4,[1,2,1,2,4,3,3,1],"texture/roofing5.jpg"))
+VIEW(multistorey_house(3,"lines/house2/")(4,"texture/brown.jpg")(3)(2)(PI/4,4,[1,2,1,2,4,3,3,1],"texture/roofing5.jpg"))
