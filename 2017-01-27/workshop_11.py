@@ -5,6 +5,7 @@ from src import workshop_09 as roofMain
 from src import workshop_10 as houseMain
 import math
 import csv
+import random
 
 #VIEW(MAP(BEZIERCURVE([[1,4],[1.1,1.9],[2,1.1],[6,1]]))(INTERVALS(1)(32)))
 def street4(streets):
@@ -309,7 +310,7 @@ def insertHouse(dx,dy,dz):
 	@param dx,dy,dz: valori che identificano la posizione della casa
 	@return house: la casa nella posizione desiderata
 	"""
-	house = houseMain.multistorey_house(2)(4)(3)(2)(PI/4)
+	house = houseMain.multistorey_house(3,"lines/house2/")(4,"texture/brown.jpg")(3)(2)(PI/4,4,[1,2,1,2,4,3,3,1],"texture/roofing5.jpg")
 	house = T([1,2,3])([dx,dy,dz])(house)
 
 	return house
@@ -332,6 +333,7 @@ def createTree():
 	@return final: l'HPC dell'albero
 	"""
 	tree = CYLINDER([0.4,5.0])(32)
+	tree = TEXTURE(["texture/wood.jpg",True,False,1,1,0,2,8])(tree)
 	tree = MATERIAL([0.2,0.09,0,0.4,  0,0,0,1,  0,0,0,.1, 0,0,0,1, 1])(tree)
 	treeup = SPHERE(2)([100,100])
 	treeup = T([3])([6])(treeup)
@@ -345,12 +347,38 @@ def createTree():
 	final = STRUCT([tree,leaf])
 	return final
 
+
+def insertTrees2(numberTrees,startX,endX,startY,):
+	"""
+	insertTrees ritorna l'HPC di un insieme di alberi
+	@param numberTrees: numero di alberi che si vuole inserire
+	@param startX: inizio del posizionamento lungo l'asse x
+	@param endX: fine del posizionamento lungo l'asse x
+	@param startY: inizio del posizionamento lungo l'asse y
+	@param endY: fine del posizionamento lungo l'asse y
+	@return trees: l'HPC degli alberi
+	"""
+	trees = []
+
+	for i in range(numberTrees):
+		dx = random.randint(startX,endX)
+		dy = random.randint(startY,endY)
+		tree = insertTree(dx,dy,3)
+		trees.append(tree)
+
+	trees = STRUCT(trees)
+	return trees
+
+
+
 def insertTrees():
 	"""
 	insertTrees ritorna l'HPC di un insieme di alberi
 	@return trees: l'HPC degli alberi
 	"""
 	trees = []
+
+
 	#in basso a sinistra
 	dx=20
 	dy=20
@@ -453,7 +481,9 @@ def suburban_neighborhood():
 	"""
 
 	piano = CUBOID([540,180,3])
-	piano = MATERIAL([0,0.2,0,1,  0,0.2,0,1,  0,0.1,0,1, 0,0,0,1, 0])(piano)
+	#piano = MATERIAL([0,0.2,0,1,  0,0.2,0,1,  0,0.1,0,1, 0,0,0,1, 0])(piano)
+	#TEXTURE([<string:nome file immagine>, <bool:boh?-Metto sempre a True>, <bool:boh?-Metto sempre a False>, <intero:boh?-Metto sempre 1>, <intero:boh?-Metto sempre 1>, <float: rotazione in gradi. Di solito 0 oppure -PI/2>, <numero ripetizioni su un asse>, <numero ripetizioni su altro asse>])
+	piano = TEXTURE(["texture/grass.jpg",True,False,1,1,0,10,8])(piano)
 
 	streets = []
 	streets = street1(streets)
@@ -478,15 +508,21 @@ def suburban_neighborhood():
 
 	houses = STRUCT([house1,house2,house3,house4,house5,house6,house7,house8,house9])
 
-	trees = insertTrees()
+	#trees = insertTrees()
+	trees1 = insertTrees2(60,5,54,20,105)
+	trees2 = insertTrees2(60,56,108,35,110)
+	trees3 = insertTrees2(40,110,162,45,110)
+	trees4 = insertTrees2(20,164,216,68,100)
+	trees = STRUCT([trees1,trees2,trees3,trees4])
 
-	streets = SOLIDIFY(streets)
+	#streets = SOLIDIFY(streets)
 	streets = T([3])([3])(streets)
-	#streets = TEXTURE("texture/streets.jpg")(streets)
+	streets = TEXTURE("texture/streets.jpg")(streets)
 	#streets = MATERIAL([0.1,0.1,0.1,0.1, 0,0,0,1, 0,0,0,1, 0,0,0,1, 0])(streets)
-	streets = COLOR(Color4f([64/255., 64/255., 64/255., 1]))(streets)
+	#streets = COLOR(Color4f([64/255., 64/255., 64/255., 1]))(streets)
 
 	suburban = STRUCT([piano,houses,trees,streets])
+	#suburban = STRUCT([piano,trees,streets])
 	return suburban
 
 VIEW(suburban_neighborhood())
