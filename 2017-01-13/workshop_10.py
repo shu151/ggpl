@@ -369,6 +369,7 @@ def createWall(file,heightWalls,balcony,textureWallsFile):
 	@param file: nome del file da cui prendere i vari parametri
 	@param heightWalls: altezza del muro
 	@param balcony: booleano, true se e' un muro di un balcone, falso altrimenti
+	@param textureWallsFile: file delle texture dei muri
 	@return walls: l'HPC dei muri
 	"""
 	verts = []
@@ -413,6 +414,7 @@ def createFloor(file):
 		floor = SOLIDIFY(externalWalls)
 		floor = S([1,2,3])([.04,.04,.04])(floor)
 		floor = OFFSET([0,0,.2])(floor)
+		floor = T([1,2])([0.1,0.1])(floor)
 		floor = TEXTURE("texture/floor.jpg")(floor)
 		return floor
 	return None
@@ -423,6 +425,9 @@ def createRoof(file,heightHouse,pendenzaFalda,heightRoof,direzioneFalde,textureR
 	@param file: nome del file da cui prendere i vari parametri
 	@param heightHouse: altezza della casa
 	@param pendenzaFalda: pendenza della falda del tetto
+	@param heightRoof: altezza del tetto
+	@param direzioneFalde: array dove un elemento indica in quale quadrante (di un ipotetico piano cartesiano) 1,2,3 o 4 va direzionata la falda
+	@param textureRoofFile: file delle texture del tetto
 	@return roof: l'HPC del tetto
 	"""
 	verts = []
@@ -436,11 +441,8 @@ def createRoof(file,heightHouse,pendenzaFalda,heightRoof,direzioneFalde,textureR
 		i+=2
 		cells.append([i-1,i])
 
-	#roof = roofMain.ggpl_roof(verts,pendenzaFalda,heightRoof,direzioneFalde)
 	roof = roofMain.ggpl_roof(verts,pendenzaFalda,heightRoof,direzioneFalde,textureRoofFile)
-	#roof = OFFSET([.2,.2,0])(roof)
 	roof = (T(3)(heightHouse)(roof))
-	#roof = TEXTURE(textureRoofFile)(roof)
 	return roof
 
 
